@@ -12,6 +12,7 @@ unless AppConfig.has_key?(:aspace_exporter)
     output_directory: "#{Dir.tmpdir}/exports",
     model: :resource,
     method: {
+      # name: :generate_pdf_from_ead,
       name: :generate_ead,
       args: [false, true, true],
     },
@@ -22,7 +23,14 @@ unless AppConfig.has_key?(:aspace_exporter)
   }
 end
 
-config = AppConfig[:aspace_exporter]
+config         = AppConfig[:aspace_exporter]
+file_extension = ".xml"
+pdf            = false
+
+if config[:method][:name].to_s =~ /pdf/
+  file_extension = ".pdf"
+  pdf            = true
+end
 
 if config[:on_startup]
   FileUtils.mkdir_p(config[:output_directory])
@@ -30,9 +38,13 @@ if config[:on_startup]
 
   exporter = ArchivesSpace::Exporter.new(config[:model], config[:method], config[:opts])
   exporter.export do |record, id|
-    output_filename = "repository_#{config[:opts][:repo_id].to_s}_#{config[:model].to_s}_#{id.to_s}.xml"
+    output_filename = "repository_#{config[:opts][:repo_id].to_s}_#{config[:model].to_s}_#{id.to_s}#{file_extension}"
     output_path     = File.join(config[:output_directory], output_filename)
-    IO.write output_path, record
+    if pdf
+      FileUtils.cp record, output_path
+    else
+      IO.write output_path, record
+    end
     $stdout.puts "Exported: #{id.to_s}"
   end
 

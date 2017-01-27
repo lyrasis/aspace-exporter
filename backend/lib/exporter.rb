@@ -11,6 +11,13 @@ module ArchivesSpace
       @args    = method[:args]
       @opts    = opts
       @repo_id = opts[:repo_id]
+      @pdf     = false
+
+      # pdf isn't in line with the rest =(
+      if @method == :generate_pdf_from_ead
+        @method = :generate_ead
+        @pdf    = true
+      end
     end
 
     def export
@@ -23,7 +30,12 @@ module ArchivesSpace
             record = send(@method, rid)
           end
 
-          record = stream_to_record(record) if streaming_method?
+          if @pdf
+            record = generate_pdf_from_ead(record)
+          elsif streaming_method?
+            record = stream_to_record(record)
+          end
+
           yield record, rid if block_given?
         end
       end

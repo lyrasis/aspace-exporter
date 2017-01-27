@@ -12,8 +12,8 @@ unless AppConfig.has_key?(:aspace_exporter)
     output_directory: "#{Dir.tmpdir}/exports",
     model: :resource,
     method: {
-      name: :generate_pdf_from_ead,
-      # name: :generate_ead,
+      # name: :generate_pdf_from_ead,
+      name: :generate_ead,
       args: [false, true, true],
     },
     opts: {

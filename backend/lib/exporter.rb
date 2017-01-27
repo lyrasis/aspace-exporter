@@ -14,7 +14,6 @@ module ArchivesSpace
     end
 
     def export
-      records = []
       RequestContext.open(:repo_id => @repo_id) do
         @model.send(:where, @opts).select(:id).each do |result_id|
           rid = result_id[:id]
@@ -23,11 +22,11 @@ module ArchivesSpace
           else
             record = send(@method, rid)
           end
-          records << record
+
+          record = stream_to_record(record) if streaming_method?
           yield record, rid if block_given?
         end
       end
-      records
     end
 
     def model_class_from_sym(model_sym)
@@ -35,6 +34,16 @@ module ArchivesSpace
         digital_object: DigitalObject,
         resource: Resource,
       }[model_sym]
+    end
+
+    def stream_to_record(record_stream)
+      record = ""
+      record_stream.each { |e| record << e }
+      record
+    end
+
+    def streaming_method?
+      [:generate_ead].include? @method
     end
 
   end

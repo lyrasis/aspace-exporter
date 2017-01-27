@@ -24,19 +24,25 @@ module ArchivesSpace
       RequestContext.open(:repo_id => @repo_id) do
         @model.send(:where, @opts).select(:id).each do |result_id|
           rid = result_id[:id]
-          if @args.any?
-            record = send(@method, rid, *@args)
-          else
-            record = send(@method, rid)
-          end
 
-          if @pdf
-            record = generate_pdf_from_ead(record)
-          elsif streaming_method?
-            record = stream_to_record(record)
-          end
+          begin
+            if @args.any?
+              record = send(@method, rid, *@args)
+            else
+              record = send(@method, rid)
+            end
 
-          yield record, rid if block_given?
+            if @pdf
+              record = generate_pdf_from_ead(record)
+            elsif streaming_method?
+              record = stream_to_record(record)
+            end
+
+            yield record, rid if block_given?
+          rescue Exception => ex
+            $stderr.puts "#{rid.to_s} #{ex.message}"
+            next
+          end
         end
       end
     end
@@ -59,5 +65,4 @@ module ArchivesSpace
     end
 
   end
-
 end

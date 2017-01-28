@@ -16,8 +16,14 @@ the system temporary directory (in a folder called exports).
 
 If the configuration is set to export on startup (which is the default)
 then records will be immediately exported from ArchivesSpace. This will
-delay application starup time so set `on_startup` to false or disable
+delay application startup time so set `on_startup` to false or disable
 the plugin when exporting is not required.
+
+## Compatibility
+
+ArchivesSpace versions tested:
+
+- v1.5.3 (unreleased)
 
 ## TODO
 

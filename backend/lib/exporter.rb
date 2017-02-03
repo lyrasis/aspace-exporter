@@ -5,18 +5,36 @@ module ArchivesSpace
     include ExportHelpers
     include URIResolver
 
+    attr_reader :extension, :pdf
+
+    def self.export(config)
+      FileUtils.mkdir_p(config[:output_directory])
+      $stdout.puts "\n\n\n\n\nExporting records from ArchivesSpace: #{Time.now}\n\n\n\n\n"
+
+      exporter = ArchivesSpace::Exporter.new(config[:model], config[:method], config[:opts])
+      exporter.export do |record, id|
+        output_filename = "repository_#{config[:opts][:repo_id].to_s}_#{config[:model].to_s}_#{id.to_s}"
+        exporter.write(record, config[:output_directory], output_filename)
+        $stdout.puts "Exported: #{id.to_s}"
+      end
+
+      $stdout.puts "\n\n\n\n\nExport complete: #{Time.now}\n\n\n\n\n"
+    end
+
     def initialize(model, method, opts = {})
-      @model   = model_class_from_sym(model)
-      @method  = method[:name]
-      @args    = method[:args]
-      @opts    = opts
-      @repo_id = opts[:repo_id]
-      @pdf     = false
+      @model     = model_class_from_sym(model)
+      @method    = method[:name]
+      @args      = method[:args]
+      @opts      = opts
+      @repo_id   = opts[:repo_id]
+      @pdf       = false
+      @extension = ".xml"
 
       # pdf isn't in line with the rest =(
       if @method == :generate_pdf_from_ead
-        @method = :generate_ead
-        @pdf    = true
+        @method    = :generate_ead
+        @pdf       = true
+        @extension = ".pdf"
       end
     end
 
@@ -62,6 +80,16 @@ module ArchivesSpace
 
     def streaming_method?
       [:generate_ead].include? @method
+    end
+
+    def write(record, directory, filename, add_extension = true)
+      filename    = "#{filename}#{@extension}" if add_extension
+      output_path = File.join(directory, filename)
+      if @pdf
+        FileUtils.cp record, output_path
+      else
+        IO.write output_path, record
+      end
     end
 
   end

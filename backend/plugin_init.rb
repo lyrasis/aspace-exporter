@@ -8,7 +8,9 @@ end
 
 unless AppConfig.has_key?(:aspace_exporter)
   AppConfig[:aspace_exporter] = {
-    on_startup: true,
+    on_startup: false,
+    on_schedule: true,
+    schedule: "* * * * *",
     output_directory: "#{Dir.tmpdir}/exports",
     model: :resource,
     method: {
@@ -23,30 +25,18 @@ unless AppConfig.has_key?(:aspace_exporter)
   }
 end
 
-config         = AppConfig[:aspace_exporter]
-file_extension = ".xml"
-pdf            = false
+ArchivesSpaceService.loaded_hook do
+  config = AppConfig[:aspace_exporter]
 
-if config[:method][:name].to_s =~ /pdf/
-  file_extension = ".pdf"
-  pdf            = true
-end
-
-if config[:on_startup]
-  FileUtils.mkdir_p(config[:output_directory])
-  $stdout.puts "\n\n\n\n\nExporting records from ArchivesSpace: #{Time.now}\n\n\n\n\n"
-
-  exporter = ArchivesSpace::Exporter.new(config[:model], config[:method], config[:opts])
-  exporter.export do |record, id|
-    output_filename = "repository_#{config[:opts][:repo_id].to_s}_#{config[:model].to_s}_#{id.to_s}#{file_extension}"
-    output_path     = File.join(config[:output_directory], output_filename)
-    if pdf
-      FileUtils.cp record, output_path
-    else
-      IO.write output_path, record
-    end
-    $stdout.puts "Exported: #{id.to_s}"
+  if config[:on_startup]
+    # do it now!
+    ArchivesSpace::Exporter.export(config)
   end
 
-  $stdout.puts "\n\n\n\n\nExport complete: #{Time.now}\n\n\n\n\n"
+  if config[:on_schedule] and config.has_key? :schedule
+    # do it later =)
+    ArchivesSpaceService.settings.scheduler.cron(config[:schedule], :tags => 'aspace-exporter') do
+      ArchivesSpace::Exporter.export(config)
+    end
+  end
 end

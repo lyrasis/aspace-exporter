@@ -14,13 +14,11 @@ the system temporary directory (in a folder called exports).
 
 ## What it does
 
-If the configuration is set to export on startup (which is the default)
-then records will be immediately exported from ArchivesSpace. This will
-delay application startup time so set `on_startup` to false to prevent
-this.
+If the configuration is set to export on startup then records will be
+immediately exported from ArchivesSpace. This will delay application
+startup time so set `on_startup` to false to prevent this.
 
-It's also possible to configure exports to run on a schedule using the
-cron format.
+Exports can be configured to run on a schedule using the cron format.
 
 ## Compatibility
 

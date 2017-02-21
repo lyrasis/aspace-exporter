@@ -5,28 +5,39 @@ module ArchivesSpace
     include ExportHelpers
     include URIResolver
 
+    Config = Struct.new(:model, :method, :opts, :output) do
+      # model: resource
+      # method: { name: generate_ead, args: [] }
+      # opts: { repo_id: 2, id: nil }
+      # output: "/tmp/exports"
+    end
+
     attr_reader :extension, :pdf
 
     def self.export(config)
-      FileUtils.mkdir_p(config[:output_directory])
+      FileUtils.mkdir_p(config.output)
       $stdout.puts "\n\n\n\n\nExporting records from ArchivesSpace: #{Time.now}\n\n\n\n\n"
 
-      exporter = ArchivesSpace::Exporter.new(config[:model], config[:method], config[:opts])
+      exporter = ArchivesSpace::Exporter.new(config)
       exporter.export do |record, id|
-        output_filename = "repository_#{config[:opts][:repo_id].to_s}_#{config[:model].to_s}_#{id.to_s}"
-        exporter.write(record, config[:output_directory], output_filename)
+        output_filename = filename_for(config.name, config.opts[:repo_id], config.model, id)
+        exporter.write(record, config.output, output_filename)
         $stdout.puts "Exported: #{id.to_s}"
       end
 
       $stdout.puts "\n\n\n\n\nExport complete: #{Time.now}\n\n\n\n\n"
     end
 
-    def initialize(model, method, opts = {})
-      @model     = model_class_from_sym(model)
-      @method    = method[:name]
-      @args      = method[:args]
-      @opts      = opts
-      @repo_id   = opts[:repo_id]
+    def self.filename_for(name, repo_id, model, id)
+      "#{name.to_s}_repository_#{repo_id.to_s}_#{model.to_s}_#{id.to_s}"
+    end
+
+    def initialize(config)
+      @model     = model_class_from_sym(config.model)
+      @method    = config.method[:name]
+      @args      = config.method[:args]
+      @opts      = config.opts
+      @repo_id   = config.opts[:repo_id]
       @pdf       = false
       @extension = ".xml"
 

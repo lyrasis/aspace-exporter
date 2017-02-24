@@ -1,24 +1,37 @@
 # aspace-exporter
 
-Export records from ArchivesSpace on startup and / or on a schedule.
+Efficiently export records from ArchivesSpace.
 
 ## Setup
 
 ```
+AppConfig[:plugins] << "archivesspace_export_service" # OPTIONAL
 AppConfig[:plugins] << "aspace-exporter"
 ```
 
-Modify the `AppConfig[:aspace_exporter]` configuration if necessary. By
-default the exporter will export resources as EAD from repository 2 to
-the system temporary directory (in a folder called exports).
+Modify the `AppConfig[:aspace_exporter]` configuration if necessary.
 
 ## What it does
 
-If the configuration is set to export on startup then records will be
-immediately exported from ArchivesSpace. This will delay application
-startup time so set `on_startup` to false to prevent this.
+It exports records to an output directory. There are multiple options:
+
+### On startup
+
+Records will be immediately exported from ArchivesSpace. This will
+delay application startup time so do this only as needed.
+
+### On schedule
 
 Exports can be configured to run on a schedule using the cron format.
+
+### On updates
+
+Every hour check for and export updated records. This depends on the
+[archivesspace_export_service](https://github.com/hudmol/archivesspace_export_service) plugin.
+
+It will also remove files for records that were deleted.
+
+Note: __only resource record updates are supported with this option__.
 
 ## Compatibility
 

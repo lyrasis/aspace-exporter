@@ -34,10 +34,11 @@ end
 ArchivesSpaceService.loaded_hook do
   AppConfig[:aspace_exporter].each do |config|
     exporter_config = ArchivesSpace::Exporter::Config.new(
-      model: config[:model],
-      method: config[:method],
-      opts: config[:opts],
-      output: config[:output_directory],
+      config[:name],
+      config[:model],
+      config[:method],
+      config[:opts],
+      config[:output_directory],
     )
 
     if config[:on][:startup]
@@ -67,10 +68,11 @@ ArchivesSpaceService.loaded_hook do
         updates = monitor.updates_since((Time.now - 3600).to_i)
         updates['adds'].each do |add|
           updater_config = ArchivesSpace::Exporter::Config.new(
-            model: config[:model],
-            method: config[:method],
-            opts: config[:opts],
-            output: config[:output_directory],
+            config[:name],
+            config[:model],
+            config[:method],
+            config[:opts],
+            config[:output_directory],
           )
           updater_config.opts[:repo_id] = add["repo_id"]
           updater_config.opts[:id]      = add["id"]

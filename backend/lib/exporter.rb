@@ -5,7 +5,8 @@ module ArchivesSpace
     include ExportHelpers
     include URIResolver
 
-    Config = Struct.new(:model, :method, :opts, :output) do
+    Config = Struct.new(:name, :model, :method, :opts, :output) do
+      # name: default
       # model: resource
       # method: { name: generate_ead, args: [] }
       # opts: { repo_id: 2, id: nil }

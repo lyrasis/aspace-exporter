@@ -11,8 +11,8 @@ unless AppConfig.has_key?(:aspace_exporter)
     name: :default,
     on: {
       startup: false,
-      update: false,
-      schedule: true,
+      update: true,
+      schedule: false,
     },
     schedule: "0 22 * * *",
     output_directory: "#{Dir.tmpdir}/exports",
@@ -57,16 +57,15 @@ ArchivesSpaceService.loaded_hook do
 
     if config[:on][:update] and config[:model] == :resource # resources only
       # do it as records are modified ...
-      unless AppConfig[:plugins].include? "archivesspace_export_service"
-        raise "Export on update requires archivesspace export service!"
+      unless AppConfig[:plugins].include? "resource_updates"
+        raise "Export on update requires resource_updates plugin!"
       end
-      # check for updates and export
+      # check for updates and export (wouldn't recommend < 1hr interval)
       ArchivesSpaceService.settings.scheduler.cron(
         "0 * * * *", :tags => "aspace-exporter-update-#{config[:name]}"
       ) do
-        monitor = ResourceUpdateMonitor.new
-        updates = monitor.updates_since((Time.now - 3600).to_i)
-        updates['adds'].each do |add|
+        updates = ArchivesSpace::ResourceUpdate.updates_since((Time.now - 3600).to_i)
+        updates[:updated].each do |update|
           updater_config = ArchivesSpace::Exporter::Config.new(
             config[:name],
             config[:model],
@@ -74,13 +73,17 @@ ArchivesSpaceService.loaded_hook do
             config[:opts],
             config[:output_directory],
           )
-          updater_config.opts[:repo_id] = add["repo_id"]
-          updater_config.opts[:id]      = add["id"]
+          # "/repositories/2/resources/1", ["", "repositories", "2", "resources", "1"]
+          uri_parts = update[:uri].split("/")
+          updater_config.opts[:repo_id] = uri_parts[2]
+          updater_config.opts[:id]      = uri_parts[4]
           ArchivesSpace::Exporter.export(updater_config)
         end
-        updates['removes'].each do |id_to_remove|
+        updates[:deleted].each do |update|
+          # "/repositories/2/resources/1", ["", "repositories", "2", "resources", "1"]
+          uri_parts = update[:uri].split("/")
           filename = ArchivesSpace::Exporter.filename_for(
-            config[:name], "*", config[:model], id_to_remove
+            config[:name], "*", config[:model], uri_parts[4]
           )
           filename = config[:method][:name].to_s =~ /pdf/ ? "#{filename}.pdf" : "#{filename}.xml"
           Dir["#{config[:output_directory]}/#{filename}"].each { |f| FileUtils.rm(f) }

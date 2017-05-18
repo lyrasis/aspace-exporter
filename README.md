@@ -4,8 +4,10 @@ Efficiently export records from ArchivesSpace.
 
 ## Setup
 
+This plugin by default is configured to require [resource_updates](https://github.com/lyrasis/resource_updates).
+
 ```
-AppConfig[:plugins] << "archivesspace_export_service" # OPTIONAL
+AppConfig[:plugins] << "resource_updates" # must come before exporter
 AppConfig[:plugins] << "aspace-exporter"
 ```
 
@@ -27,7 +29,7 @@ Exports can be configured to run on a schedule using the cron format.
 ### On updates
 
 Every hour check for and export updated records. This depends on the
-[archivesspace_export_service](https://github.com/hudmol/archivesspace_export_service) plugin.
+[resource_updates](https://github.com/lyrasis/resource_updates) plugin.
 
 It will also remove files for records that were deleted.
 
@@ -35,9 +37,10 @@ Note: __only resource record updates are supported with this option__.
 
 ## Compatibility
 
-ArchivesSpace versions tested:
+ArchivesSpace versions tested (non-release versions may become incompatible):
 
 - v1.5.3
+- v2.0.1 (release)
 
 ## License
 

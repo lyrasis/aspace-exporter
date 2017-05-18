@@ -17,7 +17,7 @@ module ArchivesSpace
 
     def self.export(config)
       FileUtils.mkdir_p(config.output)
-      $stdout.puts "\n\n\n\n\nExporting records from ArchivesSpace: #{Time.now}\n\n\n\n\n"
+      $stdout.puts "Exporting records from ArchivesSpace: #{Time.now}"
 
       exporter = ArchivesSpace::Exporter.new(config)
       exporter.export do |record, id|
@@ -26,7 +26,7 @@ module ArchivesSpace
         $stdout.puts "Exported: #{id.to_s}"
       end
 
-      $stdout.puts "\n\n\n\n\nExport complete: #{Time.now}\n\n\n\n\n"
+      $stdout.puts "Export complete: #{Time.now}"
     end
 
     def self.filename_for(name, repo_id, model, id)

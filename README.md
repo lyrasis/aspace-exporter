@@ -35,6 +35,23 @@ It will also remove files for records that were deleted.
 
 Note: __only resource record updates are supported with this option__.
 
+Minimal configuration for EAD XML exports on update:
+
+```
+AppConfig[:aspace_exporter] = [{
+  name: :ead_xml,
+  on: {
+    update: true,
+  },
+  output_directory: "/opt/archivesspace/exports",
+  model: :resource,
+  method: {
+    name: :generate_ead,
+    args: [false, true, true],
+  },
+}]
+```
+
 ## Compatibility
 
 ArchivesSpace versions tested (non-release versions may become incompatible):

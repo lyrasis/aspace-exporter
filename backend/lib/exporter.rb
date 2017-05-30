@@ -21,9 +21,11 @@ module ArchivesSpace
 
       exporter = ArchivesSpace::Exporter.new(config)
       exporter.export do |record, id|
-        output_filename = filename_for(config.name, config.opts[:repo_id], config.model, id)
-        exporter.write(record, config.output, output_filename)
-        $stdout.puts "Exported: #{id.to_s}"
+        if record
+          output_filename = filename_for(config.name, config.opts[:repo_id], config.model, id)
+          exporter.write(record, config.output, output_filename)
+          $stdout.puts "Exported: #{id.to_s} as #{output_filename}"
+        end
       end
 
       $stdout.puts "Export complete: #{Time.now}"
@@ -97,6 +99,7 @@ module ArchivesSpace
     def write(record, directory, filename, add_extension = true)
       filename    = "#{filename}#{@extension}" if add_extension
       output_path = File.join(directory, filename)
+      $stdout.puts "Writing file to #{output_path}"
       if @pdf
         FileUtils.cp record, output_path
       else

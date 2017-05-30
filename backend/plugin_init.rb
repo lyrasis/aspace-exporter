@@ -8,13 +8,13 @@ end
 
 unless AppConfig.has_key?(:aspace_exporter)
   AppConfig[:aspace_exporter] = [{
-    name: :default,
+    name: :ead_xml,
     on: {
       startup: false,
       update: true,
       schedule: false,
     },
-    schedule: "0 22 * * *",
+    schedule: "0 22 * * *", # cron for on schedule
     output_directory: "#{Dir.tmpdir}/exports",
     model: :resource,
     method: {
@@ -22,8 +22,9 @@ unless AppConfig.has_key?(:aspace_exporter)
       name: :generate_ead,
       args: [false, true, true],
     },
-    # opts limit scope for on startup and schedule
-    # but do not limit scope for update: true
+    # opts limits the scope for on startup and schedule
+    # (and repo_id is required for them)
+    # but does not limit scope for update: true
     opts: {
       repo_id: 2,
       # id: 48,
@@ -74,16 +75,16 @@ ArchivesSpaceService.loaded_hook do
             config[:output_directory],
           )
           # "/repositories/2/resources/1", ["", "repositories", "2", "resources", "1"]
-          uri_parts = update[:uri].split("/")
-          updater_config.opts[:repo_id] = uri_parts[2]
-          updater_config.opts[:id]      = uri_parts[4]
+          _, _, repo_id, _, id = update[:uri].split("/")
+          updater_config.opts[:repo_id] = repo_id.to_i
+          updater_config.opts[:id]      = id.to_i
           ArchivesSpace::Exporter.export(updater_config)
         end
         updates[:deleted].each do |update|
           # "/repositories/2/resources/1", ["", "repositories", "2", "resources", "1"]
-          uri_parts = update[:uri].split("/")
+          _, _, repo_id, _, id = update[:uri].split("/")
           filename = ArchivesSpace::Exporter.filename_for(
-            config[:name], "*", config[:model], uri_parts[4]
+            config[:name], repo_id, config[:model], id
           )
           filename = config[:method][:name].to_s =~ /pdf/ ? "#{filename}.pdf" : "#{filename}.xml"
           Dir["#{config[:output_directory]}/#{filename}"].each { |f| FileUtils.rm(f) }

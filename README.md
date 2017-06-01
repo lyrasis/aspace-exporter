@@ -49,6 +49,7 @@ AppConfig[:aspace_exporter] = [{
     name: :generate_ead,
     args: [false, true, true],
   },
+  opts: {},
 }]
 ```
 

@@ -65,7 +65,10 @@ ArchivesSpaceService.loaded_hook do
       ArchivesSpaceService.settings.scheduler.cron(
         "0 * * * *", :tags => "aspace-exporter-update-#{config[:name]}"
       ) do
-        updates = ArchivesSpace::ResourceUpdate.updates_since((Time.now - 3600).to_i)
+        current_time   = Time.now.utc
+        modified_since = (current_time - 3600)
+        $stdout.puts "Checking for resource updates between: #{modified_since} [#{modified_since.to_i}] and #{current_time} [#{current_time.to_i}]"
+        updates = ArchivesSpace::ResourceUpdate.updates_since(modified_since.to_i)
         updates[:updated].each do |update|
           updater_config = ArchivesSpace::Exporter::Config.new(
             config[:name],

@@ -14,12 +14,13 @@ class ArchivesSpaceService < Sinatra::Base
     config = AppConfig[:aspace_exporter].find { |e| e[:name].to_s == params[:name] }
     format = params[:format] || "xml"
     raise "Unable to find exporter config for #{params[:name]}" unless config
-    # "/repositories/2/resources/1", ["", "repositories", "2", "resources", "1"]
-    _, _, repo_id, _, id = params[:uri].split("/")
-    filename = ArchivesSpace::Exporter.filename_for(
-      config[:name], repo_id, config[:model], id
-    )
-    file = File.join(config[:output_directory], "#{filename}.#{format}")
+
+    # uri: "/repositories/2/resources/1"
+    manifest = ArchivesSpace::Exporter.get_manifest_path config[:output_directory], config[:name]
+    data     = CSV.foreach(manifest, headers: true).select { |row| row[2] == params[:uri] }
+    filename = data.any? ? data[1] : nil
+    file     = filename  ? File.join(config[:output_directory], filename) : nil
+
     if !File.file?(file) or params[:refresh]
       updater_config = ArchivesSpace::Exporter::Config.new(
         config[:name],
@@ -34,6 +35,7 @@ class ArchivesSpaceService < Sinatra::Base
     end
 
     raise "Error exporting #{filename}" unless File.file? file
+    # TODO: other response types
     stream_response(Nokogiri.XML(File.open(file), nil, 'UTF-8').to_xml)
   end
 

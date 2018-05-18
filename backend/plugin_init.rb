@@ -86,13 +86,14 @@ ArchivesSpaceService.loaded_hook do
           ArchivesSpace::Exporter.export(updater_config)
         end
         updates[:deleted].each do |update|
-          # "/repositories/2/resources/1", ["", "repositories", "2", "resources", "1"]
-          _, _, repo_id, _, id = update[:uri].split("/")
-          filename = ArchivesSpace::Exporter.filename_for(
-            config[:name], repo_id, config[:model], id
-          )
-          filename = config[:method][:name].to_s =~ /pdf/ ? "#{filename}.pdf" : "#{filename}.xml"
-          Dir["#{config[:output_directory]}/#{filename}"].each { |f| FileUtils.rm(f) }
+          # uri: "/repositories/2/resources/1"
+          manifest = ArchivesSpace::Exporter.get_manifest_path config[:output_directory], config[:name]
+          data     = CSV.foreach(manifest, headers: true).select { |row| row[2] == update[:uri] }
+          next unless data.any?
+          data[3]  = Time.now # update modified time
+          data[4]  = true     # set deleted true
+          ArchivesSpace::Exporter.update_manifest(manifest, data)
+          ArchivesSpace::Exporter.delete_file(config[:output_directory], data[1])
         end
       end
     end

@@ -1,6 +1,6 @@
 # aspace-exporter
 
-Efficiently export records from ArchivesSpace.
+Export records from ArchivesSpace.
 
 ## Setup
 
@@ -15,7 +15,16 @@ Modify the `AppConfig[:aspace_exporter]` configuration if necessary.
 
 ## What it does
 
-It exports records to an output directory. There are multiple options:
+It exports records to an output directory with a manifest (a list of records with
+some minimal metadata).
+
+- location
+- filename
+- uri
+- updated_at
+- deleted
+
+There are multiple options:
 
 ### On startup
 

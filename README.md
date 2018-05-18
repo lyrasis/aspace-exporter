@@ -43,11 +43,12 @@ AppConfig[:aspace_exporter] = [{
   on: {
     update: true,
   },
+  schedule: "0 * * * *",
   output_directory: "/opt/archivesspace/exports",
   model: :resource,
   method: {
     name: :generate_ead,
-    args: [false, true, true],
+    args: [false, true, true, false],
   },
   opts: {},
 }]

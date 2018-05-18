@@ -11,16 +11,17 @@ unless AppConfig.has_key?(:aspace_exporter)
     name: :ead_xml,
     on: {
       startup: false,
-      update: true,
+      update: false,
       schedule: false,
     },
+    # schedule: "0 * * * *", # cron for on update
     schedule: "0 22 * * *", # cron for on schedule
-    output_directory: "#{Dir.tmpdir}/exports",
+    output_directory: File.join(Dir.tmpdir, "exports"),
     model: :resource,
     method: {
-      # name: :generate_pdf_from_ead,
+      # name: :generate_pdf_from_ead, # for pdf export
       name: :generate_ead,
-      args: [false, true, true],
+      args: [false, true, true, false],
     },
     # opts limits the scope for on startup and schedule
     # (and repo_id is required for them)
@@ -59,11 +60,12 @@ ArchivesSpaceService.loaded_hook do
     if config[:on][:update] and config[:model] == :resource # resources only
       # do it as records are modified ...
       unless AppConfig[:plugins].include? "resource_updates"
-        raise "Export on update requires resource_updates plugin!"
+        $stderr.puts "Export on update requires resource_updates plugin!"
+        next
       end
       # check for updates and export (wouldn't recommend < 1hr interval)
       ArchivesSpaceService.settings.scheduler.cron(
-        "0 * * * *", :tags => "aspace-exporter-update-#{config[:name]}"
+        config[:schedule], :tags => "aspace-exporter-update-#{config[:name]}"
       ) do
         current_time   = Time.now.utc
         modified_since = (current_time - 3600)

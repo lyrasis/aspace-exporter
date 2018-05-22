@@ -1,6 +1,6 @@
 # aspace-exporter
 
-Export records from ArchivesSpace.
+Export resource records from ArchivesSpace.
 
 ## Setup
 
@@ -24,42 +24,22 @@ some minimal metadata).
 - updated_at
 - deleted
 
-There are multiple options:
+### How it works
 
-### On startup
-
-Records will be immediately exported from ArchivesSpace. This will
-delay application startup time so do this only as needed.
-
-### On schedule
-
-Exports can be configured to run on a schedule using the cron format.
-
-### On updates
-
-Every hour check for and export updated records. This depends on the
+Every hour it checks for and exports updated records. This depends on the
 [resource_updates](https://github.com/lyrasis/resource_updates) plugin.
 
 It will also remove files for records that were deleted.
 
-Note: __only resource record updates are supported with this option__.
-
-Minimal configuration for EAD XML exports on update:
-
 ```
 AppConfig[:aspace_exporter] = [{
   name: :ead_xml,
-  on: {
-    update: true,
-  },
-  schedule: "0 * * * *",
+  schedule: "0", # the minute to check for updates once an hour
   output_directory: "/opt/archivesspace/exports",
-  model: :resource,
   method: {
     name: :generate_ead,
     args: [false, true, true, false],
   },
-  opts: {},
 }]
 ```
 
@@ -68,17 +48,20 @@ AppConfig[:aspace_exporter] = [{
 A new endpint is available for retrieving the exported files over http(s):
 
 ```
-curl -H "X-ArchivesSpace-Session: $session" \
-  -H "Accept: application/xml" \
+curl -H "Accept: application/xml" \
   http://$host:$port/aspace_exporter/:name?uri=/repositories/:repo_id/resources/:id
 ```
+
+**Warning:** no permissions are required for this endpoint so be sure to protect
+access to the api if exporting unpublished records.
 
 ## Compatibility
 
 ArchivesSpace versions tested (non-release versions may become incompatible):
 
 - v1.5.3
-- v2.0.1 (release)
+- v2.0.1
+- v2.3.2
 
 ## License
 

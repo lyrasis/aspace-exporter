@@ -88,12 +88,13 @@ ArchivesSpaceService.loaded_hook do
         updates[:deleted].each do |update|
           # uri: "/repositories/2/resources/1"
           manifest = ArchivesSpace::Exporter.get_manifest_path config[:output_directory], config[:name]
-          data     = CSV.foreach(manifest, headers: true).select { |row| row[2] == update[:uri] }
-          next unless data.any?
-          data[3]  = Time.now # update modified time
-          data[4]  = true     # set deleted true
+          data     = CSV.foreach(manifest, headers: false).select { |row| row[2] == update[:uri] }.first
+          next unless data
+          filename = data[1]
+          data[3]  = Time.now.to_s # update modified time
+          data[4]  = true          # set deleted true
           ArchivesSpace::Exporter.update_manifest(manifest, data)
-          ArchivesSpace::Exporter.delete_file(config[:output_directory], data[1])
+          ArchivesSpace::Exporter.delete_file(config[:output_directory], filename)
         end
       end
     end

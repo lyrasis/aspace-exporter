@@ -16,7 +16,7 @@ module ArchivesSpace
     attr_reader :extension, :pdf
 
     def self.delete_file(output, filename)
-      Dir[File.join(output filename)].each { |f| FileUtils.rm(f) }
+      Dir[File.join(output, filename)].each { |f| FileUtils.rm(f) }
     end
 
     def self.export(config)
@@ -75,7 +75,7 @@ module ArchivesSpace
     end
 
     def self.uri_for(repo_id, model, id)
-      "repositories/#{repo_id.to_s}/#{model.to_s}s/#{id.to_s}"
+      "/repositories/#{repo_id.to_s}/#{model.to_s}s/#{id.to_s}"
     end
 
     def self.update_manifest(manifest, data)

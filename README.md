@@ -70,11 +70,8 @@ A new endpint is available for retrieving the exported files over http(s):
 ```
 curl -H "X-ArchivesSpace-Session: $session" \
   -H "Accept: application/xml" \
-  http://$host:$port/aspace_exporter/:name?uri=/repositories/:repo_id/resources/:id&refresh=false
+  http://$host:$port/aspace_exporter/:name?uri=/repositories/:repo_id/resources/:id
 ```
-
-The `refresh` param is optional. If used and true the file will be exported
-again before retrieval.
 
 ## Compatibility
 

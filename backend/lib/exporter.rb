@@ -58,7 +58,7 @@ module ArchivesSpace
     end
 
     def self.location_to(url, name, filename)
-      "#{url}/aspace_exporter/#{name}?filename=#{filename}".squeeze('/')
+      "#{url}/aspace_exporter/#{name}/file/#{filename}".squeeze('/')
     end
 
     def self.remove_stale_data(manifest, location)

@@ -6,7 +6,7 @@ Export resource records from ArchivesSpace.
 
 This plugin by default is configured to require [resource_updates](https://github.com/lyrasis/resource_updates).
 
-```
+```ruby
 AppConfig[:plugins] << "resource_updates" # must come before exporter
 AppConfig[:plugins] << "aspace-exporter"
 ```
@@ -31,7 +31,7 @@ Every hour it checks for and exports updated records. This depends on the
 
 It will also remove files for records that were deleted.
 
-```
+```ruby
 AppConfig[:aspace_exporter] = [{
   name: :ead_xml,
   schedule: "0", # the minute to check for updates once an hour
@@ -47,7 +47,7 @@ AppConfig[:aspace_exporter] = [{
 
 A new endpoint is available for retrieving the exported files over http(s):
 
-```
+```bash
 curl -H "Accept: text/csv" \
   http://$host:$port/aspace_exporter/:name/manifest.csv
 
@@ -55,7 +55,7 @@ curl -H "Accept: application/xml" \
   http://$host:$port/aspace_exporter/:name/file/:filename
 ```
 
-**Warning:** no permissions are required for this endpoint so be sure to protect
+**Warning:** no permissions are required for these endpoints so be sure to protect
 access to the api if exporting unpublished records.
 
 ## Compatibility

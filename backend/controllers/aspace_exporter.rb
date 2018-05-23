@@ -1,6 +1,6 @@
 class ArchivesSpaceService < Sinatra::Base
 
-  Endpoint.get('/aspace_exporter/:name/manifest/manifest.csv')
+  Endpoint.get('/aspace_exporter/:name/manifest.csv')
     .description("Retrieve an export manifest")
     .params(
       ["name", String, "The exporter profile name", required: true]

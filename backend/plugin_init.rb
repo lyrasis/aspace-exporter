@@ -62,7 +62,7 @@ ArchivesSpaceService.loaded_hook do
         filename           = data["filename"]
         data["updated_at"] = Time.now.to_s # update modified time
         data["deleted"]    = true          # set deleted true
-        ArchivesSpace::Exporter.update_manifest(manifest, data.values)
+        ArchivesSpace::Exporter.update_manifest(manifest, data.to_hash.values)
         ArchivesSpace::Exporter.delete_file(config[:output_directory], filename)
       end
     end

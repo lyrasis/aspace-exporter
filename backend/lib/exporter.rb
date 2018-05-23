@@ -52,7 +52,7 @@ module ArchivesSpace
     end
 
     def self.find_in_manifest?(manifest, data)
-      IO.foreach(manifest).grep(/#{Regexp.escape(data)}/).take(1).any?
+      IO.foreach(manifest).grep(/#{Regexp.escape(data)}/).take(1).any? if File.file?(manifest)
     end
 
     def self.get_manifest_path(output, name)

@@ -60,7 +60,7 @@ module ArchivesSpace
     end
 
     def self.location_to(url, filename)
-      "#{url}/#{filename}".squeeze('/')
+      "#{url}#{('/' + filename).squeeze('/')}"
     end
 
     def self.remove_stale_data(manifest, location)
@@ -139,7 +139,7 @@ module ArchivesSpace
     end
 
     def filename_for(field, delim = '_')
-      "#{JSON.parse(field).join(delim).gsub(/\s/, delim).squeeze(delim).chomp(delim)}#{@extension}"
+      "#{JSON.parse(field).join(delim).gsub(/(\s|\/)/, delim).squeeze(delim).chomp(delim)}#{@extension}"
     end
 
     def filename_field_for(model_sym)

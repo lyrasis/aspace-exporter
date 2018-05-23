@@ -45,11 +45,14 @@ AppConfig[:aspace_exporter] = [{
 
 ## API access
 
-A new endpint is available for retrieving the exported files over http(s):
+A new endpoint is available for retrieving the exported files over http(s):
 
 ```
+curl -H "Accept: text/csv" \
+  http://$host:$port/aspace_exporter/:name/manifest.csv
+
 curl -H "Accept: application/xml" \
-  http://$host:$port/aspace_exporter/:name?uri=/repositories/:repo_id/resources/:id
+  http://$host:$port/aspace_exporter/:name/file/:filename
 ```
 
 **Warning:** no permissions are required for this endpoint so be sure to protect

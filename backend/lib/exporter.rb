@@ -14,6 +14,8 @@ module ArchivesSpace
       # location: "#{AppConfig[:frontend_proxy_url]}/api"
     end
 
+    MANIFEST_HEADERS = ["location", "filename", "uri", "title", "updated_at", "deleted"]
+
     attr_reader :extension, :pdf
 
     def self.delete_file(output, filename)
@@ -23,7 +25,7 @@ module ArchivesSpace
     def self.export(config)
       FileUtils.mkdir_p(config.output)
       manifest = get_manifest_path(config.output, config[:name])
-      write_manifest_headers(manifest) unless File.file? manifest
+      update_manifest(manifest, MANIFEST_HEADERS) unless File.file? manifest
 
       $stdout.puts "Exporting records from ArchivesSpace: #{Time.now}"
 
@@ -41,7 +43,7 @@ module ArchivesSpace
             updated_at: Time.now,
             deleted:    false,
           }
-          $stdout.puts "Manifest: #{data.keys.join(',')}"
+          $stdout.puts "Manifest: #{data.values.join(',')}"
           update_manifest(manifest, data.values)
         end
       end
@@ -86,12 +88,7 @@ module ArchivesSpace
       CSV.open(manifest, 'a') do |csv|
         csv << data
       end
-    end
-
-    def self.write_manifest_headers(manifest)
-      CSV.open(manifest, 'a') do |csv|
-        csv << ["location", "filename", "uri", "title", "updated_at", "deleted"]
-      end
+      File.chmod(0644, manifest)
     end
 
     def initialize(config)

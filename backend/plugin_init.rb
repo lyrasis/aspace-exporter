@@ -11,6 +11,7 @@ unless AppConfig.has_key?(:aspace_exporter)
     name: :ead_xml,
     schedule: "0",
     output_directory: File.join(Dir.tmpdir, "exports"),
+    location: AppConfig[:backend_url],
     method: {
       # name: :generate_pdf_from_ead, # for pdf export
       name: :generate_ead,
@@ -45,6 +46,7 @@ ArchivesSpaceService.loaded_hook do
           config[:method],
           config[:opts],
           config[:output_directory],
+          config[:location],
         )
         # "/repositories/2/resources/1", ["", "repositories", "2", "resources", "1"]
         _, _, repo_id, _, id = update[:uri].split("/")
@@ -55,12 +57,12 @@ ArchivesSpaceService.loaded_hook do
       updates[:deleted].each do |update|
         # uri: "/repositories/2/resources/1"
         manifest = ArchivesSpace::Exporter.get_manifest_path config[:output_directory], config[:name]
-        data     = CSV.foreach(manifest, headers: false).select { |row| row[2] == update[:uri] }.first
+        data     = CSV.foreach(manifest, headers: true).select { |row| row[2] == update[:uri] }.first
         next unless data
-        filename = data[1]
-        data[3]  = Time.now.to_s # update modified time
-        data[4]  = true          # set deleted true
-        ArchivesSpace::Exporter.update_manifest(manifest, data)
+        filename           = data["filename"]
+        data["updated_at"] = Time.now.to_s # update modified time
+        data["deleted"]    = true          # set deleted true
+        ArchivesSpace::Exporter.update_manifest(manifest, data.values)
         ArchivesSpace::Exporter.delete_file(config[:output_directory], filename)
       end
     end

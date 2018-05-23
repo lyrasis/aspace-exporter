@@ -5,12 +5,13 @@ module ArchivesSpace
     include ExportHelpers
     include URIResolver
 
-    Config = Struct.new(:name, :model, :method, :opts, :output) do
+    Config = Struct.new(:name, :model, :method, :opts, :output, :location) do
       # name: default
       # model: resource
       # method: { name: generate_ead, args: [] }
       # opts: { repo_id: 2, id: nil }
       # output: "/tmp/exports"
+      # location: "#{AppConfig[:frontend_proxy_url]}/api"
     end
 
     attr_reader :extension, :pdf
@@ -27,21 +28,21 @@ module ArchivesSpace
       $stdout.puts "Exporting records from ArchivesSpace: #{Time.now}"
 
       exporter = ArchivesSpace::Exporter.new(config)
-      exporter.export do |record, id, filename|
+      exporter.export do |record, id, filename, title|
         if record
           exporter.write(record, config.output, filename)
           $stdout.puts "Exported: #{id.to_s} as #{filename}"
 
-          # ADD / UPDATE MANIFEST (location,filename,uri,updated_at,deleted)
-          data = [
-            location_to("files/exports", filename), # TODO: path arg
-            filename,
-            uri_for(config.opts[:repo_id], config.model, id),
-            Time.now,
-            false,
-          ]
-          $stdout.puts "Manifest: #{data.join(',')}"
-          update_manifest(manifest, data)
+          data = {
+            location:   location_to(config.location, config.name, filename),
+            filename:   filename,
+            uri:        uri_for(config.opts[:repo_id], config.model, id),
+            title:      title,
+            updated_at: Time.now,
+            deleted:    false,
+          }
+          $stdout.puts "Manifest: #{data.keys.join(',')}"
+          update_manifest(manifest, data.values)
         end
       end
 
@@ -56,8 +57,8 @@ module ArchivesSpace
       File.join(output, "manifest_#{name}.csv")
     end
 
-    def self.location_to(path, filename)
-      "#{AppConfig[:frontend_proxy_url]}/#{path}/#{filename}"
+    def self.location_to(url, name, filename)
+      "#{url}/aspace_exporter/#{name}?filename=#{filename}".squeeze('/')
     end
 
     def self.remove_stale_data(manifest, location)
@@ -89,7 +90,7 @@ module ArchivesSpace
 
     def self.write_manifest_headers(manifest)
       CSV.open(manifest, 'a') do |csv|
-        csv << ["location", "filename", "uri", "updated_at", "deleted"]
+        csv << ["location", "filename", "uri", "title", "updated_at", "deleted"]
       end
     end
 
@@ -113,9 +114,10 @@ module ArchivesSpace
 
     def export
       RequestContext.open(:repo_id => @repo_id) do
-        @model.send(:where, @opts).select(:id, @filename_field).each do |result_id|
-          rid      = result_id[:id]
-          filename = filename_for(result_id[@filename_field])
+        @model.send(:where, @opts).select(:id, @filename_field, :title).each do |result|
+          rid      = result[:id]
+          filename = filename_for(result[@filename_field])
+          title    = result.title
 
           begin
             if @args.any?
@@ -130,7 +132,7 @@ module ArchivesSpace
               record = stream_to_record(record)
             end
 
-            yield record, rid, filename if block_given?
+            yield record, rid, filename, title if block_given?
           rescue Exception => ex
             $stderr.puts "#{rid.to_s} #{ex.message}"
             next

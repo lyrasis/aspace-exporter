@@ -11,7 +11,7 @@ unless AppConfig.has_key?(:aspace_exporter)
     name: :ead_xml,
     schedule: "0",
     output_directory: File.join(Dir.tmpdir, "exports"),
-    location: AppConfig[:backend_url],
+    location: "#{AppConfig[:backend_url]}/aspace_exporter/ead_xml/files",
     method: {
       # name: :generate_pdf_from_ead, # for pdf export
       name: :generate_ead,

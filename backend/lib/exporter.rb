@@ -34,7 +34,7 @@ module ArchivesSpace
           $stdout.puts "Exported: #{id.to_s} as #{filename}"
 
           data = {
-            location:   location_to(config.location, config.name, filename),
+            location:   location_to(config.location, filename),
             filename:   filename,
             uri:        uri_for(config.opts[:repo_id], config.model, id),
             title:      title,
@@ -57,8 +57,8 @@ module ArchivesSpace
       File.join(output, "manifest_#{name}.csv")
     end
 
-    def self.location_to(url, name, filename)
-      "#{url}/aspace_exporter/#{name}/file/#{filename}".squeeze('/')
+    def self.location_to(url, filename)
+      "#{url}/#{filename}".squeeze('/')
     end
 
     def self.remove_stale_data(manifest, location)

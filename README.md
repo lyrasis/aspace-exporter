@@ -36,6 +36,8 @@ AppConfig[:aspace_exporter] = [{
   name: :ead_xml,
   schedule: "0", # the minute to check for updates once an hour
   output_directory: "/opt/archivesspace/exports",
+  # url directory for the manifest
+  location: "#{AppConfig[:backend_url]}/aspace_exporter/ead_xml/files",
   method: {
     name: :generate_ead,
     args: [false, true, true, false],

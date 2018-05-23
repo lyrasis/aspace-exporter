@@ -14,12 +14,11 @@ class ArchivesSpaceService < Sinatra::Base
     [200, {"Content-Type" => "text/csv"}, [File.read(manifest) + "\n"]]
   end
 
-  Endpoint.get('/aspace_exporter/:name/file/:filename')
+  Endpoint.get('/aspace_exporter/:name/files/:filename')
     .description("Retrieve an exported EAD")
     .params(
       ["name", String, "The exporter profile name", required: true],
-      ["filename", String, "The resource filename", required: true],
-      ["format", String, "The resource format", optional: true]
+      ["filename", String, "The resource filename", required: true]
     )
     .permissions([])
     .returns([200, ""]) \
@@ -27,14 +26,19 @@ class ArchivesSpaceService < Sinatra::Base
     config   = get_exporter_config(params[:name])
     manifest = get_exporter_manifest(config)
 
-    format   = params[:format] || "xml"
+    format   = File.extname(params[:filename]).gsub(/\./, '')
     data     = CSV.foreach(manifest, headers: true).select { |row| row[1] == params[:filename] }.first
     filename = data["filename"] if data
     file     = filename ? File.join(config[:output_directory], filename) : ""
 
     raise "Error exporting: #{params[:filename]}" unless File.file? file
-    # TODO: other response types
-    stream_response(Nokogiri.XML(File.open(file), nil, 'UTF-8').to_xml)
+    if format == "xml"
+      stream_response(Nokogiri.XML(File.open(file), nil, 'UTF-8').to_xml)
+    elsif format == "pdf"
+      send_file file, type: :pdf
+    else
+      raise "Invalid export format: #{params[:filename]}, #{format}"
+    end
   end
 
   private

@@ -52,7 +52,10 @@ curl -H "Accept: text/csv" \
   http://$host:$port/aspace_exporter/:name/manifest.csv
 
 curl -H "Accept: application/xml" \
-  http://$host:$port/aspace_exporter/:name/file/:filename
+  http://$host:$port/aspace_exporter/:name/files/:filename
+
+curl -H "Accept: application/pdf" \
+  http://$host:$port/aspace_exporter/:name/files/:filename -o :filename
 ```
 
 **Warning:** no permissions are required for these endpoints so be sure to protect

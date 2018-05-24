@@ -175,6 +175,7 @@ module ArchivesSpace
       else
         IO.write output_path, record
       end
+      File.chmod(0644, output_path)
     end
 
   end

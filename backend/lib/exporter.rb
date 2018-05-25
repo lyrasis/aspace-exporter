@@ -170,9 +170,10 @@ module ArchivesSpace
     def write(record, directory, filename)
       output_path = File.join(directory, filename)
       $stdout.puts "Writing file to #{output_path}"
-      if @pdf
-        FileUtils.cp record, output_path
-      else
+      if @pdf # record is a tmp file
+        FileUtils.copy_file record, output_path
+        FileUtils.rm record
+      else # record is an xml string
         IO.write output_path, record
       end
       File.chmod(0644, output_path)

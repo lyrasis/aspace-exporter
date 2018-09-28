@@ -24,9 +24,6 @@ module ArchivesSpace
 
     def self.export(config)
       FileUtils.mkdir_p(config.output)
-      manifest = get_manifest_path(config.output, config[:name])
-      update_manifest(manifest, MANIFEST_HEADERS) unless File.file? manifest
-
       $stdout.puts "Exporting records from ArchivesSpace: #{Time.now}"
 
       exporter = ArchivesSpace::Exporter.new(config)
@@ -44,6 +41,8 @@ module ArchivesSpace
             deleted:    false,
           }
           $stdout.puts "Manifest: #{data.values.join(',')}"
+          manifest = get_manifest_path(config.output, "repo_#{config.opts[:repo_id]}_#{config[:name]}")
+          update_manifest(manifest, MANIFEST_HEADERS) unless File.file? manifest
           update_manifest(manifest, data.values)
         end
       end
